@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numpy.ma as ma
 
-
 # 🔹 Rotor Parameters
 R = 7.1287  # m
 R_cut = 0.2
@@ -37,51 +36,52 @@ x = np.array([theta_0, theta_1c, theta_1s])
 # effective aoa compute
 alpha_eff = np.zeros((n_psi, n_r))
 
-
 def compute_aero_coefficients(x):
     theta_0, theta_1c, theta_1s = x
     C_n_total = np.zeros((n_psi, n_r))
 
     C_T = 0.00464
     lambda_h = np.sqrt(C_T/2)
-    lambda_0 = lambda_h*(np.sqrt(1/4*(mu/lambda_h)**4 + 1) - 1/2*(mu/lambda_h)**2)**1/2  # Linear inflow
+    lambda_0 = lambda_h*np.sqrt((np.sqrt(1/4*(mu/lambda_h)**4 + 1) - 1/2*(mu/lambda_h)**2))  # Linear inflow
 
     for j, r_R in enumerate(r_vals):
         if r_R < 1e-6:
             continue
         r = r_R * R
         theta = theta_0 + theta_tw * (r_R - 0.75) + theta_1c * np.cos(psi_vals) + theta_1s * np.sin(psi_vals)
+        #theta = theta_0 + theta_tw * (r - 0.75) + theta_1c * np.cos(psi_vals) + theta_1s * np.sin(psi_vals)
 
         beta = beta_1c * np.cos(psi_vals) + beta_1s * np.sin(psi_vals)
         beta_dot = - Omega * (beta_1c * np.sin(psi_vals) - beta_1s * np.cos(psi_vals))
-
-        x_angle = np.arctan2(mu , (1e-6 + lambda_0 ))
-        k_x = 4/3 * ((1 - np.cos(x_angle) - 1.08 * mu**2) / np.maximum(np.abs(np.sin(x_angle)), 0.05))
+        
+        mu_x = mu
+        mu_z = 0
+        x_angle = np.arctan2(mu_x , (mu_z + lambda_0))
+        k_x = 4/3 * ((1 - np.cos(x_angle) - 1.8 * mu**2) / np.sin(x_angle))
         k_y = -2 * mu
         lambda_i = ( 1 + k_x*np.cos(psi_vals)/r_R + k_y*np.sin(psi_vals)/r_R ) * lambda_0
 
-
-        U_T = Omega * r + mu * U_tip * np.sin(psi_vals)
-        U_P = (lambda_i + (r * beta_dot) / Omega + mu * beta * np.cos(psi_vals)) * U_tip
+        U_T = Omega * R * r + mu * Omega * R * np.sin(psi_vals)
+        U_P = Omega * R * lambda_i + r * beta_dot * R + Omega * R * mu * beta * np.cos(psi_vals)
         U_eff = np.sqrt(U_T**2 + U_P**2)
 
-        phi = np.arctan(U_P / (U_T + 1e-6))
+        phi = np.arctan( U_P / U_T )
         alpha = theta - phi
         alpha_eff[:, j] = np.degrees(alpha)
 
         #tip loss factor
         B = 1 - np.sqrt(C_T) / Nb
-         
+
         Cl_alpha = 2 * np.pi
         Cl = Cl_alpha * alpha
         Cd0 = 0.011
         Cd = Cd0 + (Cl**2) / (np.pi * 0.7 * 6)
 
-        dpsi = 2*np.pi /n_psi
-        dr = (r_vals[1] - r_vals[0]) * r_R
+        dpsi = (2 * np.pi) /n_psi
+        dr = (r_vals[1] - r_vals[0]) * R
         dL = 0.5 * rho * chord * Cl * U_eff**2 * dr * B
         dD = 0.5 * rho * chord * Cd * U_eff**2 * dr * B
-        dT = (dL * np.cos(phi) - dD * np.sin(phi))*dpsi 
+        dT = (dL * np.cos(phi) - dD * np.sin(phi)) * dpsi 
         
         area_section = chord * dr
         C_n_total[:, j] = dT / (0.5 * rho * U_tip**2 * area_section)
@@ -238,7 +238,7 @@ for r_target in [0.6]:
 
     #print(f"[DEBUG] Cn min: {Cn_interp_lin.min():.3f}, max: {Cn_interp_lin.max():.3f}")
 
-    plt.plot(360 - np.degrees(psi_vals), Cn_interp_lin, label="Linear inflow", linestyle='--', linewidth=2)
+    plt.plot( np.degrees(psi_vals), Cn_interp_lin, label="Linear inflow", linestyle='--', linewidth=2)
 
 
 plt.scatter(x_60,y_60,label="project")
@@ -256,7 +256,7 @@ for r_target in [0.75]:
 
     print(f"[DEBUG] Cn min: {Cn_interp_lin.min():.3f}, max: {Cn_interp_lin.max():.3f}")
 
-    plt.plot(360 - np.degrees(psi_vals), Cn_interp_lin, label="Linear inflow", linestyle='--', linewidth=2)
+    plt.plot( np.degrees(psi_vals), Cn_interp_lin, label="Linear inflow", linestyle='--', linewidth=2)
 
 plt.scatter(x_75,y_75,label="project")
 plt.grid(True)
@@ -273,7 +273,8 @@ for r_target in [0.91]:
 
     print(f"[DEBUG] Cn min: {Cn_interp_lin.min():.3f}, max: {Cn_interp_lin.max():.3f}")
 
-    plt.plot(360 - np.degrees(psi_vals), Cn_interp_lin, label="Linear inflow", linestyle='--', linewidth=2)
+    plt.plot( np.degrees(psi_vals), Cn_interp_lin, label="Linear inflow", linestyle='--', linewidth=2)
+    
 plt.scatter(x_91,y_91,label="project")
 plt.grid(True)
 plt.xlabel("Azimuth, deg")
@@ -289,7 +290,8 @@ for r_target in [0.99]:
 
     print(f"[DEBUG] Cn min: {Cn_interp_lin.min():.3f}, max: {Cn_interp_lin.max():.3f}")
 
-    plt.plot(360 - np.degrees(psi_vals), Cn_interp_lin, label="Linear inflow", linestyle='--', linewidth=2)
+    plt.plot( np.degrees(psi_vals), Cn_interp_lin, label="Linear inflow", linestyle='--', linewidth=2)
+    
 plt.scatter(x_99,y_99,label="project")
 plt.grid(True)
 plt.xlabel("Azimuth, deg")

@@ -1,5 +1,5 @@
 # Tip loss factor를 적용하면 기존의 data에 더 근접해야하는가 
-# 아니면 그래프의 형상을 정돈시켜주는것인가.
+# 아니면 그래프의 형상을 정돈시켜주는것인가. 이것.
 # 후자가 맞다면 잘 나온것이고 그렇지 않다면 다시 해봐야한다.
 import numpy as np
 import matplotlib.pyplot as plt
@@ -41,7 +41,7 @@ def compute_aero_coefficients(x):
 
     C_T = 0.00464
     lambda_h = np.sqrt(C_T/2)
-    lambda_0 = lambda_h*(np.sqrt(1/4*(mu/lambda_h)**4 + 1) - 1/2*(mu/lambda_h)**2)**1/2  # Linear inflow
+    lambda_0 = lambda_h*(np.sqrt(1/4*(mu/lambda_h)**4 + 1) - 1/2*(mu/lambda_h)**2)**(1/2)  # Linear inflow
 
     for j, r_R in enumerate(r_vals):
         if r_R < 1e-6:

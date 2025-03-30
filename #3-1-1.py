@@ -38,7 +38,7 @@ def compute_aero_coefficients(x):
 
     C_T = 0.00464
     lambda_h = np.sqrt(C_T/2)
-    lambda_0 = lambda_h*(np.sqrt(1/4*(mu/lambda_h)**4 + 1) - 1/2*(mu/lambda_h)**2)**1/2  # Linear inflow
+    lambda_0 = lambda_h*(np.sqrt(1/4*(mu/lambda_h)**4 + 1) - 1/2*(mu/lambda_h)**2)**(1/2)  # Linear inflow
 
     for j, r_R in enumerate(r_vals):
         if r_R < 1e-6:
